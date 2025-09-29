@@ -16,7 +16,7 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public List<Libro> obtenerTodosLosLibros() {
-        return libroRepository.findAll();
+        return libroRepository.findByActivoTrue();
     }
 
     @Override
@@ -32,5 +32,15 @@ public class LibroServiceImpl implements LibroService {
     @Override
     public void eliminarLibro(Long id) {
         libroRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Libro> obtenerLibrosPorCategoria(Long categoriaId) {
+        return libroRepository.findByCategoriaIdAndActivoTrue(categoriaId);
+    }
+
+    @Override
+    public List<Libro> obtenerLibrosDestacados() {
+        return libroRepository.findByDestacadoTrueAndActivoTrue();
     }
 }

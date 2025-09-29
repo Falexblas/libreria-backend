@@ -10,14 +10,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/libros")
+@CrossOrigin(origins = "*") // Para desarrollo - en producción usar URL específica del frontend
 public class LibroController {
 
     @Autowired
     private LibroService libroService;
 
+    
     @GetMapping
-    public List<Libro> listarLibros() {
-        return libroService.obtenerTodosLosLibros();
+    public ResponseEntity<List<Libro>> listarLibros() {
+        List<Libro> libros = libroService.obtenerTodosLosLibros();
+        return ResponseEntity.ok(libros);
     }
 
     @GetMapping("/{id}")
@@ -27,7 +30,19 @@ public class LibroController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Métodos para administradores (CRUD)
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<List<Libro>> librosPorCategoria(@PathVariable Long categoriaId) {
+        List<Libro> libros = libroService.obtenerLibrosPorCategoria(categoriaId);
+        return ResponseEntity.ok(libros);
+    }
+
+    @GetMapping("/destacados")
+    public ResponseEntity<List<Libro>> librosDestacados() {
+        List<Libro> libros = libroService.obtenerLibrosDestacados();
+        return ResponseEntity.ok(libros);
+    }
+
+    // Métodos CRUD simplificados
 
 
     @PostMapping

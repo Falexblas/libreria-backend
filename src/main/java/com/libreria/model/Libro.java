@@ -51,8 +51,8 @@ public class Libro {
     @Column(name = "fecha_publicacion")
     private LocalDate fechaPublicacion;
 
-    @Column(name = "portada_url", length = 500)
-    private String portadaUrl;
+    @Column(name = "portada_url", length = 1000)
+    private String portadaUrl; 
 
     @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean destacado;
