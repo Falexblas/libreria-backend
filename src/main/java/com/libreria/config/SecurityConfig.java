@@ -27,24 +27,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/libros/**", "/api/auth/**", "/api/categorias/**", "/api/autores/**", "/api/editoriales/**", "/api/test/**").permitAll()
-                .requestMatchers("/", "/libros", "/libros/{id}", "/registro", "/css/**", "/js/**", "/images/**").permitAll()
+        http
+            .csrf(csrf -> csrf.disable()) // Deshabilitar CSRF para API REST
+            .authorizeHttpRequests(auth -> auth
+                // Endpoints públicos de la API
+                .requestMatchers("/api/libros/**", "/api/auth/**", "/api/categorias/**", 
+                                "/api/autores/**", "/api/editoriales/**", "/api/test/**",
+                                "/api/chat/**").permitAll()
+                // Endpoints de administración
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                .requestMatchers("/libros/nuevo", "/libros/{id}/editar", "/libros/{id}/eliminar").hasAuthority("ADMIN")
+                // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
-        )
-        .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/libros", true)
-                .permitAll()
-        )
-        .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-        );
+            )
+            .httpBasic(basic -> {}) // Autenticación HTTP Basic para API
+            .sessionManagement(session -> session
+                .maximumSessions(1) // Máximo 1 sesión por usuario
+            );
         return http.build();
     }
 
