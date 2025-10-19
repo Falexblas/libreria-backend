@@ -16,7 +16,8 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public List<Libro> obtenerTodosLosLibros() {
-        return libroRepository.findByActivoTrue();
+        // ✅ OPTIMIZADO: Usa JOIN FETCH para cargar todo en 1 consulta
+        return libroRepository.findAllActivosConRelaciones();
     }
 
     @Override
@@ -36,11 +37,13 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public List<Libro> obtenerLibrosPorCategoria(Long categoriaId) {
-        return libroRepository.findByCategoriaIdAndActivoTrue(categoriaId);
+        // ✅ OPTIMIZADO: Usa JOIN FETCH para cargar todo en 1 consulta
+        return libroRepository.findByCategoriaIdActivosConRelaciones(categoriaId);
     }
 
     @Override
     public List<Libro> obtenerLibrosDestacados() {
-        return libroRepository.findByDestacadoTrueAndActivoTrue();
+        // ✅ OPTIMIZADO: Usa JOIN FETCH para cargar todo en 1 consulta
+        return libroRepository.findDestacadosActivosConRelaciones();
     }
 }
