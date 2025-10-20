@@ -57,14 +57,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("timestamp", LocalDateTime.now());
-        error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        error.put("error", "Internal Server Error");
-        error.put("message", "Ha ocurrido un error interno del servidor");
-        
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+   @ExceptionHandler(Exception.class)
+public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+    // TEMPORAL: Agrega el mensaje real para debug
+    Map<String, Object> error = new HashMap<>();
+    error.put("timestamp", LocalDateTime.now());
+    error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+    error.put("error", "Internal Server Error");
+    error.put("message", ex.getMessage()); // ← Agrega esto temporalmente
+    error.put("debug", ex.getClass().getName()); // ← Y esto
+    
+    return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+}
 }
