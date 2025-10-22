@@ -6,7 +6,6 @@ import com.libreria.JWT.LoginRequest;
 import com.libreria.JWT.RegisterRequest;
 import com.libreria.model.Rol;
 import com.libreria.model.Usuario;
-import com.libreria.repository.RolRepository;
 import com.libreria.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,8 +21,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
-
-    private final RolRepository rolRepository;
 
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
@@ -75,11 +72,23 @@ public class UsuarioServiceImpl implements UsuarioService {
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        UserDetails user = usuarioRepository.findByEmail(request.getEmail())
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         
-        String token = jwtService.getToken(user);
-        return AuthResponse.builder().token(token).build();
+        String token = jwtService.getToken(usuario);
+        
+        // Crear DTO con solo la información segura necesaria
+        com.libreria.JWT.UserDTO userDTO = com.libreria.JWT.UserDTO.builder()
+                .id(usuario.getId())
+                .nombre(usuario.getNombre())
+                .email(usuario.getEmail())
+                .rol(usuario.getRol() != null ? usuario.getRol().getNombre() : "USER")
+                .build();
+        
+        return AuthResponse.builder()
+                .token(token)
+                .user(userDTO)
+                .build();
     }
 
     @Override
@@ -96,7 +105,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         .rol(rol)  // ← Asignar rol aquí
         .telefono(request.getTelefono())
         .direccion(request.getDireccion())
-        .ciudad(request.getCiudad())
         .codigoPostal(request.getCodigoPostal())
         .fechaRegistro(LocalDateTime.now())
         .activo(true)
@@ -104,8 +112,20 @@ public class UsuarioServiceImpl implements UsuarioService {
     
 
         usuarioRepository.save(usuario);
+        
+        String token = jwtService.getToken(usuario);
+        
+        // Crear DTO con solo la información segura necesaria
+        com.libreria.JWT.UserDTO userDTO = com.libreria.JWT.UserDTO.builder()
+                .id(usuario.getId())
+                .nombre(usuario.getNombre())
+                .email(usuario.getEmail())
+                .rol(usuario.getRol() != null ? usuario.getRol().getNombre() : "USER")
+                .build();
+        
         return AuthResponse.builder()
-                .token(jwtService.getToken(usuario))
+                .token(token)
+                .user(userDTO)
                 .build();
     }
 
@@ -128,5 +148,16 @@ public class UsuarioServiceImpl implements UsuarioService {
         } catch (Exception e) {
             throw new IllegalArgumentException("Token inválido o expirado", e);
         }
+    }
+
+    @Override
+    public boolean verificarPassword(Usuario usuario, String passwordActual) {
+        return passwordEncoder.matches(passwordActual, usuario.getPassword());
+    }
+
+    @Override
+    public void cambiarPassword(Usuario usuario, String passwordNueva) {
+        usuario.setPassword(passwordEncoder.encode(passwordNueva));
+        usuarioRepository.save(usuario);
     }
 }

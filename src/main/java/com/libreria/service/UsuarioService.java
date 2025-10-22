@@ -23,4 +23,8 @@ public interface UsuarioService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
     AuthResponse refreshToken(String token);
+    
+    // Métodos para cambiar contraseña
+    boolean verificarPassword(Usuario usuario, String passwordActual);
+    void cambiarPassword(Usuario usuario, String passwordNueva);
 }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import org.hibernate.annotations.ColumnDefault;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,12 +28,16 @@ public class Usuario implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ========================================
+    // CAMPOS OBLIGATORIOS PARA REGISTRO
+    // ========================================
+    
     @NotEmpty(message = "El nombre no puede estar vacío")
     @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
     @Column(length = 100, nullable = false)
     private String nombre;
 
-    @Column(length = 100)
+    @Column(length = 100)  // Opcional
     private String apellido;
 
     @NotEmpty(message = "El email no puede estar vacío")
@@ -47,23 +51,42 @@ public class Usuario implements UserDetails {
     private String password;
 
     @ManyToOne
-@JoinColumn(name = "rol_id", nullable = false)
-private Rol rol;
+    @JoinColumn(name = "rol_id", nullable = false)
+    private Rol rol;
+
+    // ========================================
+    // CAMPOS OPCIONALES (Se completan después)
+    // ========================================
+    
+    @Column(length = 20)
+    private String telefono;  // Opcional - Se completa en perfil o checkout
 
     @Column(length = 20)
-    private String telefono;
+    private String documento;  // Opcional - DNI, CE, Pasaporte
 
-    private String direccion;
+    private String direccion;  // Opcional - Se completa en checkout
+
+    @Column(name = "referencia_direccion")
+    private String referenciaDireccion;  // Opcional - Referencia adicional
 
     @Column(length = 100)
-    private String ciudad;
+    private String departamento;  // Opcional - Se completa en checkout
+
+    @Column(length = 100)
+    private String provincia;  // Opcional - Se completa en checkout
+
+    @Column(length = 100)
+    private String distrito;  // Opcional - Se completa en checkout
 
     @Column(name = "codigo_postal", length = 10)
-    private String codigoPostal;
+    private String codigoPostal;  // Opcional - Se completa en checkout
+
+    private String notas;  // Opcional - Notas adicionales
 
     @Column(name = "fecha_registro", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fechaRegistro;
 
+    @Builder.Default
     private boolean activo = true;
 
     @Override
