@@ -11,4 +11,5 @@ import java.util.List;
 public interface FavoritoRepository extends JpaRepository<Favorito, Long> {
     List<Favorito> findByUsuario(Usuario usuario);
     boolean existsByUsuarioAndLibro(Usuario usuario, Libro libro);
+    void deleteByUsuarioIdAndLibroId(Long usuarioId, Long libroId);
 }

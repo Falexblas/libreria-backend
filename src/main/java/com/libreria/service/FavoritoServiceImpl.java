@@ -6,6 +6,7 @@ import com.libreria.model.Usuario;
 import com.libreria.repository.FavoritoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,12 +30,13 @@ public class FavoritoServiceImpl implements FavoritoService {
     }
 
     @Override
-    public void eliminarDeFavoritos(Long favoritoId) {
-        favoritoRepository.deleteById(favoritoId);
+    public List<Favorito> obtenerFavoritosPorUsuario(Usuario usuario) {
+        return favoritoRepository.findByUsuario(usuario);
     }
 
     @Override
-    public List<Favorito> obtenerFavoritosPorUsuario(Usuario usuario) {
-        return favoritoRepository.findByUsuario(usuario);
+    @Transactional
+    public void eliminarDeFavoritosPorUsuarioYLibro(Long usuarioId, Long libroId) {
+        favoritoRepository.deleteByUsuarioIdAndLibroId(usuarioId, libroId);
     }
 }

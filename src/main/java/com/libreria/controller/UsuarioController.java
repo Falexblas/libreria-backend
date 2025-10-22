@@ -2,6 +2,7 @@ package com.libreria.controller;
 
 import com.libreria.service.UsuarioService; 
 import com.libreria.model.Usuario;
+import com.libreria.repository.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -18,6 +20,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     /**
      * Obtener usuario por ID
@@ -116,10 +121,26 @@ public class UsuarioController {
                 usuario.setNotas(datosCheckout.get("notas"));
             }
 
-            // Guardar cambios
-            Usuario usuarioActualizado = usuarioService.actualizarUsuario(usuario);
+            // Guardar cambios (sin tocar el password)
+            // Guardamos directamente en el repositorio para evitar que se re-hashee el password
+            Usuario usuarioActualizado = usuarioRepository.save(usuario);
 
-            return ResponseEntity.ok(usuarioActualizado);
+            // Crear DTO sin el password para no exponerlo
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", usuarioActualizado.getId());
+            response.put("nombre", usuarioActualizado.getNombre());
+            response.put("apellido", usuarioActualizado.getApellido());
+            response.put("email", usuarioActualizado.getEmail());
+            response.put("telefono", usuarioActualizado.getTelefono());
+            response.put("documento", usuarioActualizado.getDocumento());
+            response.put("direccion", usuarioActualizado.getDireccion());
+            response.put("departamento", usuarioActualizado.getDepartamento());
+            response.put("provincia", usuarioActualizado.getProvincia());
+            response.put("distrito", usuarioActualizado.getDistrito());
+            response.put("codigoPostal", usuarioActualizado.getCodigoPostal());
+            response.put("rol", usuarioActualizado.getRol() != null ? usuarioActualizado.getRol().getNombre() : "USER");
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,

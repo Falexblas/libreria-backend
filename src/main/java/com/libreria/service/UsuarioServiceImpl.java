@@ -81,6 +81,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         com.libreria.JWT.UserDTO userDTO = com.libreria.JWT.UserDTO.builder()
                 .id(usuario.getId())
                 .nombre(usuario.getNombre())
+                .apellido(usuario.getApellido())
                 .email(usuario.getEmail())
                 .rol(usuario.getRol() != null ? usuario.getRol().getNombre() : "USER")
                 .build();
@@ -119,6 +120,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         com.libreria.JWT.UserDTO userDTO = com.libreria.JWT.UserDTO.builder()
                 .id(usuario.getId())
                 .nombre(usuario.getNombre())
+                .apellido(usuario.getApellido())
                 .email(usuario.getEmail())
                 .rol(usuario.getRol() != null ? usuario.getRol().getNombre() : "USER")
                 .build();

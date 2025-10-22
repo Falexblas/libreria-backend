@@ -17,4 +17,5 @@ public interface OrdenService {
     // Métodos para administración
     List<Orden> obtenerTodasLasOrdenes();
     Orden actualizarEstadoOrden(Long id, String nuevoEstado);
+    Object obtenerDetallesOrdenAdmin(Long id);  // Sin validación de usuario
 }

@@ -46,9 +46,13 @@ public class FavoritoController {
         return ResponseEntity.ok(nuevoFavorito);
     }
 
-    @DeleteMapping("/eliminar/{favoritoId}")
-    public ResponseEntity<Void> eliminarDeFavoritos(@PathVariable Long favoritoId) {
-        favoritoService.eliminarDeFavoritos(favoritoId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/eliminar-libro/{libroId}")
+    public ResponseEntity<Void> eliminarDeFavoritosPorLibro(
+            @PathVariable Long libroId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        favoritoService.eliminarDeFavoritosPorUsuarioYLibro(usuario.getId(), libroId);
+        return ResponseEntity.noContent().build();
     }
 }

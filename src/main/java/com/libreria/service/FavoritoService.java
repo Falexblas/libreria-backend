@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface FavoritoService {
     Favorito agregarAFavoritos(Usuario usuario, Libro libro);
-    void eliminarDeFavoritos(Long favoritoId);
     List<Favorito> obtenerFavoritosPorUsuario(Usuario usuario);
+    void eliminarDeFavoritosPorUsuarioYLibro(Long usuarioId, Long libroId);
 }

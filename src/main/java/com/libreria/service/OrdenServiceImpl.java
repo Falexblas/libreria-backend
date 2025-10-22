@@ -197,4 +197,14 @@ public class OrdenServiceImpl implements OrdenService {
         
         return ordenRepository.save(orden);
     }
+
+    @Override
+    public Object obtenerDetallesOrdenAdmin(Long id) {
+        // Verificar que la orden existe
+        ordenRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
+        
+        // Obtener detalles sin validar usuario (para admin)
+        return detalleOrdenRepository.findByOrdenId(id);
+    }
 }

@@ -2,16 +2,20 @@ package com.libreria.controller;
 
 import com.libreria.model.Orden;
 import com.libreria.model.Usuario;
+import com.libreria.model.Libro;
 import com.libreria.service.OrdenService;
 import com.libreria.service.UsuarioService;
+import com.libreria.service.LibroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -23,6 +27,9 @@ public class AdminController {
 
     @Autowired
     private OrdenService ordenService;
+
+    @Autowired
+    private LibroService libroService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> obtenerDashboard() {
@@ -37,6 +44,44 @@ public class AdminController {
         dashboard.put("mensaje", "Panel de administración - API REST");
         
         return ResponseEntity.ok(dashboard);
+    }
+
+    @GetMapping("/estadisticas")
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticas() {
+        Map<String, Object> estadisticas = new HashMap<>();
+        
+        // Total de usuarios
+        List<Usuario> usuarios = usuarioService.obtenerTodosLosUsuarios();
+        estadisticas.put("totalUsuarios", usuarios.size());
+        
+        // Total de órdenes
+        List<Orden> ordenes = ordenService.obtenerTodasLasOrdenes();
+        estadisticas.put("totalOrdenes", ordenes.size());
+        
+        // Total de libros
+        List<Libro> libros = libroService.obtenerTodosLosLibros();
+        estadisticas.put("totalLibros", libros.size());
+        
+        // Total de ventas (suma de todos los totales de órdenes)
+        BigDecimal ventasTotales = ordenes.stream()
+            .map(Orden::getTotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        estadisticas.put("ventasTotales", ventasTotales);
+        
+        return ResponseEntity.ok(estadisticas);
+    }
+
+    @GetMapping("/ordenes/recientes")
+    public ResponseEntity<List<Orden>> obtenerOrdenesRecientes() {
+        List<Orden> ordenes = ordenService.obtenerTodasLasOrdenes();
+        
+        // Ordenar por fecha más reciente y tomar las últimas 10
+        List<Orden> ordenesRecientes = ordenes.stream()
+            .sorted((o1, o2) -> o2.getFechaPedido().compareTo(o1.getFechaPedido()))
+            .limit(10)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(ordenesRecientes);
     }
 
     @GetMapping("/usuarios")
@@ -95,5 +140,15 @@ public class AdminController {
                     return ResponseEntity.ok(ordenActualizada);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/ordenes/{id}/detalles")
+    public ResponseEntity<?> obtenerDetallesOrden(@PathVariable Long id) {
+        try {
+            Object detalles = ordenService.obtenerDetallesOrdenAdmin(id);
+            return ResponseEntity.ok(detalles);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
