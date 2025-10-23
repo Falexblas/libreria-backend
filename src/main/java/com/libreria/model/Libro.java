@@ -41,7 +41,8 @@ public class Libro {
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     private int stock;
 
-    private String descripcion;
+    @Column(length = 2000)  // o el tamaño que consideres necesario
+private String descripcion;
 
     private Integer paginas;
 
