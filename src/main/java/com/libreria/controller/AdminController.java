@@ -3,6 +3,10 @@ package com.libreria.controller;
 import com.libreria.model.Orden;
 import com.libreria.model.Usuario;
 import com.libreria.model.Libro;
+import com.libreria.dto.VentasPorMesDTO;
+import com.libreria.dto.TopLibroDTO;
+import com.libreria.dto.CategoriaPopularDTO;
+import com.libreria.repository.OrdenRepository;
 import com.libreria.service.OrdenService;
 import com.libreria.service.UsuarioService;
 import com.libreria.service.LibroService;
@@ -12,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -30,6 +35,9 @@ public class AdminController {
 
     @Autowired
     private LibroService libroService;
+    
+    @Autowired
+    private OrdenRepository ordenRepository;
 
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> obtenerDashboard() {
@@ -150,5 +158,50 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // ========================================
+    // ENDPOINTS DE REPORTES
+    // ========================================
+
+    @GetMapping("/reportes/ventas-por-mes")
+    public ResponseEntity<List<VentasPorMesDTO>> obtenerVentasPorMes() {
+        int anioActual = LocalDate.now().getYear();
+        List<VentasPorMesDTO> ventas = ordenRepository.findVentasPorMes(anioActual);
+        return ResponseEntity.ok(ventas);
+    }
+
+    @GetMapping("/reportes/estado-ordenes")
+    public ResponseEntity<Map<String, Long>> obtenerEstadoOrdenes() {
+        List<Object[]> resultados = ordenRepository.countByEstado();
+        Map<String, Long> estadoMap = new HashMap<>();
+        
+        for (Object[] resultado : resultados) {
+            String estado = (String) resultado[0];
+            Long cantidad = (Long) resultado[1];
+            estadoMap.put(estado, cantidad);
+        }
+        
+        return ResponseEntity.ok(estadoMap);
+    }
+
+    @GetMapping("/reportes/top-libros")
+    public ResponseEntity<List<TopLibroDTO>> obtenerTopLibros() {
+        List<TopLibroDTO> topLibros = ordenRepository.findTopLibros();
+        // Limitar a top 5
+        List<TopLibroDTO> top5 = topLibros.stream()
+            .limit(5)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(top5);
+    }
+
+    @GetMapping("/reportes/categorias-populares")
+    public ResponseEntity<List<CategoriaPopularDTO>> obtenerCategoriasPopulares() {
+        List<CategoriaPopularDTO> categorias = ordenRepository.findCategoriasPopulares();
+        // Limitar a top 5
+        List<CategoriaPopularDTO> top5 = categorias.stream()
+            .limit(5)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(top5);
     }
 }

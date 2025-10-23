@@ -1,5 +1,6 @@
 package com.libreria.service;
 
+import com.libreria.dto.FacturaDTO;
 import com.libreria.model.Orden;
 import com.libreria.model.Usuario;
 
@@ -18,4 +19,7 @@ public interface OrdenService {
     List<Orden> obtenerTodasLasOrdenes();
     Orden actualizarEstadoOrden(Long id, String nuevoEstado);
     Object obtenerDetallesOrdenAdmin(Long id);  // Sin validación de usuario
+    
+    // Método para generar datos de factura
+    FacturaDTO generarDatosFactura(Long ordenId, Usuario usuario);
 }

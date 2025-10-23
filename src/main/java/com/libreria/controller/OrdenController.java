@@ -1,5 +1,6 @@
 package com.libreria.controller;
 
+import com.libreria.dto.FacturaDTO;
 import com.libreria.model.Orden;
 import com.libreria.model.Usuario;
 import com.libreria.service.OrdenService;
@@ -105,6 +106,24 @@ public class OrdenController {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
                 "message", "Error al crear la orden: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Obtener datos de factura para generar PDF en el frontend
+     * Devuelve JSON con todos los datos necesarios para jsPDF
+     */
+    @GetMapping("/{id}/factura")
+    public ResponseEntity<?> obtenerDatosFactura(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Usuario usuario = obtenerUsuarioActual(userDetails);
+            FacturaDTO factura = ordenService.generarDatosFactura(id, usuario);
+            return ResponseEntity.ok(factura);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Error al obtener datos de factura: " + e.getMessage()
             ));
         }
     }
