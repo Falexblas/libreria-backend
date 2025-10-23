@@ -13,7 +13,7 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
     
     // ✅ Buscar todos los libros activos con relaciones (optimizado con JOIN FETCH)
     @Query("SELECT DISTINCT l FROM Libro l " +
-           "LEFT JOIN FETCH l.autor " +
+           "LEFT JOIN FETCH l.autores " +
            "LEFT JOIN FETCH l.categoria " +
            "LEFT JOIN FETCH l.editorial " +
            "WHERE l.activo = true")
@@ -22,7 +22,7 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
     
     // ✅ Buscar libros por categoría con relaciones (optimizado con JOIN FETCH)
     @Query("SELECT DISTINCT l FROM Libro l " +
-           "LEFT JOIN FETCH l.autor " +
+           "LEFT JOIN FETCH l.autores " +
            "LEFT JOIN FETCH l.categoria " +
            "LEFT JOIN FETCH l.editorial " +
            "WHERE l.categoria.id = :categoriaId AND l.activo = true")
@@ -31,7 +31,7 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
     
     // ✅ Buscar libros destacados con relaciones (optimizado con JOIN FETCH)
     @Query("SELECT DISTINCT l FROM Libro l " +
-           "LEFT JOIN FETCH l.autor " +
+           "LEFT JOIN FETCH l.autores " +
            "LEFT JOIN FETCH l.categoria " +
            "LEFT JOIN FETCH l.editorial " +
            "WHERE l.destacado = true AND l.activo = true")

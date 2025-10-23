@@ -5,6 +5,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Entity
@@ -17,9 +20,14 @@ public class Libro {
     @Column(length = 255, nullable = false)
     private String titulo;
 
-    @ManyToOne
-    @JoinColumn(name = "autor_id", nullable = false)
-    private Autor autor;
+    // Relación N:M con Autores a través de la tabla libros_autores
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "libros_autores",
+        joinColumns = @JoinColumn(name = "libro_id"),
+        inverseJoinColumns = @JoinColumn(name = "autor_id")
+    )
+    private List<Autor> autores = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "editorial_id")
@@ -63,4 +71,63 @@ private String descripcion;
 
     @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean activo;
+
+    // ========================================
+    // MÉTODOS HELPER PARA AUTORES
+    // ========================================
+    
+    /**
+     * Obtiene el autor principal (primer autor de la lista)
+     * Para mantener compatibilidad con código existente
+     */
+    public Autor getAutor() {
+        return autores != null && !autores.isEmpty() ? autores.get(0) : null;
+    }
+    
+    /**
+     * Establece un único autor (para compatibilidad con código existente)
+     */
+    public void setAutor(Autor autor) {
+        if (this.autores == null) {
+            this.autores = new ArrayList<>();
+        }
+        this.autores.clear();
+        if (autor != null) {
+            this.autores.add(autor);
+        }
+    }
+    
+    /**
+     * Obtiene los nombres de todos los autores como String
+     * Formato: "Autor1, Autor2, Autor3"
+     */
+    public String getAutoresNombres() {
+        if (autores == null || autores.isEmpty()) {
+            return "";
+        }
+        return autores.stream()
+            .map(a -> a.getNombre() + " " + a.getApellido())
+            .collect(Collectors.joining(", "));
+    }
+    
+    /**
+     * Agrega un autor a la lista
+     */
+    public void agregarAutor(Autor autor) {
+        if (this.autores == null) {
+            this.autores = new ArrayList<>();
+        }
+        if (autor != null && !this.autores.contains(autor)) {
+            this.autores.add(autor);
+        }
+    }
+    
+    /**
+     * Elimina un autor de la lista
+     */
+    public void eliminarAutor(Autor autor) {
+        if (this.autores != null && autor != null) {
+            this.autores.remove(autor);
+        }
+    }
 }
