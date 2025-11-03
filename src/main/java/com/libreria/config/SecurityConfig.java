@@ -30,6 +30,12 @@ public class SecurityConfig {
                                 "/api/chat/**", "/auth/**").permitAll()
                 // Endpoints de usuarios - requieren autenticación
                 .requestMatchers("/api/usuarios/**").authenticated()
+                // Endpoints del carrito - requieren autenticación
+                .requestMatchers("/api/carrito/**").authenticated()
+                // Endpoints de órdenes - requieren autenticación
+                .requestMatchers("/api/ordenes/**").authenticated()
+                // Endpoints de favoritos - requieren autenticación
+                .requestMatchers("/api/favoritos/**").authenticated()
                 // Endpoints de administración
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 // Cualquier otra petición requiere autenticación
