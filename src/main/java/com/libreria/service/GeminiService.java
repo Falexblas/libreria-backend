@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import com.libreria.dto.ChatResponse;
 import com.libreria.model.Libro;
 import com.libreria.repository.LibroRepository;
+import com.libreria.repository.FavoritoRepository;
+import com.libreria.repository.DetalleOrdenRepository;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,12 @@ public class GeminiService {
 
     @Autowired
     private LibroRepository libroRepository;
+
+    @Autowired
+    private FavoritoRepository favoritoRepository;
+
+    @Autowired
+    private DetalleOrdenRepository detalleOrdenRepository;
 
     private final OkHttpClient httpClient = new OkHttpClient();
     private final Gson gson = new Gson();
@@ -238,5 +246,166 @@ public class GeminiService {
      */
     private String limpiarRespuesta(String respuesta) {
         return respuesta.replaceAll("\\[ID:\\d+\\]", "").trim();
+    }
+
+    /**
+     * Obtiene recomendaciones personalizadas basadas en el historial del usuario
+     * Usado para notificaciones y sugerencias en tiempo real
+     */
+    public ChatResponse obtenerRecomendacionesPersonalizadas(Long usuarioId) {
+        try {
+            // 1. Obtener libros comprados por el usuario
+            List<Libro> librosComprados = detalleOrdenRepository.findLibrosCompradosPorUsuario(usuarioId);
+            
+            // 2. Obtener libros favoritos del usuario
+            List<Libro> librosFavoritos = favoritoRepository.findLibrosFavoritosPorUsuario(usuarioId);
+            
+            // 3. Si no tiene historial, retornar recomendaciones generales
+            if (librosComprados.isEmpty() && librosFavoritos.isEmpty()) {
+                return obtenerRecomendacionesGenerales();
+            }
+            
+            // 4. Obtener todos los libros disponibles
+            List<Libro> todosLosLibros = libroRepository.findAll();
+            
+            // 5. Construir contexto personalizado
+            String contextoPersonalizado = construirContextoPersonalizado(
+                librosComprados, 
+                librosFavoritos, 
+                todosLosLibros
+            );
+            
+            // 6. Crear prompt personalizado para Gemini
+            String prompt = construirPromptRecomendacionesPersonalizadas(contextoPersonalizado);
+            
+            // 7. Llamar a Gemini
+            String respuestaGemini = llamarGeminiAPI(prompt);
+            
+            // 8. Extraer IDs de libros
+            List<Long> idsLibrosRecomendados = extraerIdsLibros(respuestaGemini);
+            
+            // 9. Obtener libros recomendados
+            List<ChatResponse.LibroRecomendado> librosRecomendados = obtenerLibrosRecomendados(idsLibrosRecomendados);
+            
+            // 10. Retornar respuesta
+            return ChatResponse.builder()
+                    .respuesta(limpiarRespuesta(respuestaGemini))
+                    .librosRecomendados(librosRecomendados)
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error al obtener recomendaciones personalizadas: {}", e.getMessage(), e);
+            return obtenerRecomendacionesGenerales();
+        }
+    }
+
+    /**
+     * Obtiene recomendaciones generales cuando el usuario no tiene historial
+     */
+    private ChatResponse obtenerRecomendacionesGenerales() {
+        try {
+            List<Libro> todosLosLibros = libroRepository.findAll();
+            String contextoLibros = construirContextoLibros(todosLosLibros);
+            String prompt = """
+                Eres un asistente virtual experto en recomendaciones de libros.
+                
+                INSTRUCCIONES:
+                1. Solo puedes recomendar libros que estén en el catálogo
+                2. Cuando recomiendes un libro, SIEMPRE incluye su ID así: [ID:123]
+                3. Recomienda 3 libros populares y variados
+                4. Sé amable y entusiasta
+                
+                %s
+                
+                Recomiéndame 3 libros interesantes para empezar a explorar nuestra librería.
+                RESPUESTA (recuerda incluir [ID:X] para cada libro):
+                """.formatted(contextoLibros);
+            
+            String respuestaGemini = llamarGeminiAPI(prompt);
+            List<Long> idsLibrosRecomendados = extraerIdsLibros(respuestaGemini);
+            List<ChatResponse.LibroRecomendado> librosRecomendados = obtenerLibrosRecomendados(idsLibrosRecomendados);
+            
+            return ChatResponse.builder()
+                    .respuesta(limpiarRespuesta(respuestaGemini))
+                    .librosRecomendados(librosRecomendados)
+                    .build();
+        } catch (Exception e) {
+            log.error("Error al obtener recomendaciones generales: {}", e.getMessage(), e);
+            return ChatResponse.builder()
+                    .respuesta("Bienvenido a nuestra librería. Explora nuestro catálogo de libros.")
+                    .librosRecomendados(new ArrayList<>())
+                    .build();
+        }
+    }
+
+    /**
+     * Construye el contexto personalizado basado en el historial del usuario
+     */
+    private String construirContextoPersonalizado(
+            List<Libro> librosComprados,
+            List<Libro> librosFavoritos,
+            List<Libro> todosLosLibros) {
+        
+        StringBuilder contexto = new StringBuilder();
+        
+        // Información del usuario
+        contexto.append("=== PERFIL DEL USUARIO ===\n");
+        contexto.append("Libros comprados: ").append(librosComprados.size()).append("\n");
+        contexto.append("Libros en favoritos: ").append(librosFavoritos.size()).append("\n\n");
+        
+        // Libros comprados
+        if (!librosComprados.isEmpty()) {
+            contexto.append("LIBROS QUE HA COMPRADO:\n");
+            librosComprados.stream().limit(5).forEach(libro ->
+                contexto.append(String.format("- \"%s\" por %s %s (Categoría: %s)\n",
+                    libro.getTitulo(),
+                    libro.getAutor().getNombre(),
+                    libro.getAutor().getApellido(),
+                    libro.getCategoria().getNombre()))
+            );
+            contexto.append("\n");
+        }
+        
+        // Libros favoritos
+        if (!librosFavoritos.isEmpty()) {
+            contexto.append("LIBROS EN FAVORITOS:\n");
+            librosFavoritos.stream().limit(5).forEach(libro ->
+                contexto.append(String.format("- \"%s\" por %s %s (Categoría: %s)\n",
+                    libro.getTitulo(),
+                    libro.getAutor().getNombre(),
+                    libro.getAutor().getApellido(),
+                    libro.getCategoria().getNombre()))
+            );
+            contexto.append("\n");
+        }
+        
+        // Catálogo disponible
+        contexto.append("=== CATÁLOGO DISPONIBLE ===\n");
+        contexto.append(construirContextoLibros(todosLosLibros));
+        
+        return contexto.toString();
+    }
+
+    /**
+     * Construye el prompt para obtener recomendaciones personalizadas
+     */
+    private String construirPromptRecomendacionesPersonalizadas(String contextoPersonalizado) {
+        return String.format("""
+            Eres un asistente virtual experto en recomendaciones de libros para una librería online.
+            
+            INSTRUCCIONES IMPORTANTES:
+            1. Analiza el historial de compras y favoritos del usuario
+            2. Recomienda libros que NO estén en su historial de compras
+            3. SIEMPRE incluye el ID del libro así: [ID:123]
+            4. Recomienda máximo 3 libros
+            5. Explica por qué cada libro es perfecto para este usuario
+            6. Sé amable, conversacional y entusiasta
+            7. Menciona el precio cuando sea relevante
+            
+            %s
+            
+            Basándome en el perfil del usuario anterior, recomiéndame 3 libros que creas que le encantarán.
+            RESPUESTA (recuerda incluir [ID:X] para cada libro):
+            """, contextoPersonalizado);
     }
 }
