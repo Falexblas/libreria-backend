@@ -161,7 +161,7 @@ public class AdminController {
     }
 
     // ========================================
-    // ENDPOINTS DE REPORTES
+    // Dashboard
     // ========================================
 
     @GetMapping("/reportes/ventas-por-mes")

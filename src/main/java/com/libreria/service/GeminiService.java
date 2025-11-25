@@ -387,7 +387,7 @@ public class GeminiService {
     }
 
     /**
-     * Construye el prompt para obtener recomendaciones personalizadas
+     *  prompt para obtener recomendaciones personalizadas
      */
     private String construirPromptRecomendacionesPersonalizadas(String contextoPersonalizado) {
         return String.format("""
