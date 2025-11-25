@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -203,5 +206,50 @@ public class AdminController {
             .limit(5)
             .collect(Collectors.toList());
         return ResponseEntity.ok(top5);
+    }
+
+    // ========================================
+    // CAMBIAR CONTRASEÑA
+    // ========================================
+
+    @PutMapping("/cambiar-password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, String> payload) {
+        try {
+            String passwordActual = payload.get("passwordActual");
+            String passwordNueva = payload.get("passwordNueva");
+
+            // Validar que las contraseñas no estén vacías
+            if (passwordActual == null || passwordActual.isEmpty() || 
+                passwordNueva == null || passwordNueva.isEmpty()) {
+                return ResponseEntity.badRequest().body("Las contraseñas no pueden estar vacías");
+            }
+
+            // Validar que la nueva contraseña tenga al menos 6 caracteres
+            if (passwordNueva.length() < 6) {
+                return ResponseEntity.badRequest().body("La contraseña debe tener al menos 6 caracteres");
+            }
+
+            // Obtener el usuario autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+
+            // Buscar el usuario por email
+            Usuario usuario = usuarioService.buscarPorEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            // Verificar que la contraseña actual sea correcta
+            if (!usuarioService.verificarPassword(usuario, passwordActual)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("La contraseña actual es incorrecta");
+            }
+
+            // Cambiar la contraseña
+            usuarioService.cambiarPassword(usuario, passwordNueva);
+
+            return ResponseEntity.ok("Contraseña cambiada exitosamente");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al cambiar la contraseña: " + e.getMessage());
+        }
     }
 }
