@@ -164,48 +164,56 @@ public class AdminController {
     }
 
     // ========================================
-    // Dashboard
+    // Dashboard - Reportes y Estadísticas
     // ========================================
 
+    /**
+     * Obtiene las ventas mensuales del año actual
+     */
     @GetMapping("/reportes/ventas-por-mes")
     public ResponseEntity<List<VentasPorMesDTO>> obtenerVentasPorMes() {
-        int anioActual = LocalDate.now().getYear();
-        List<VentasPorMesDTO> ventas = ordenRepository.findVentasPorMes(anioActual);
-        return ResponseEntity.ok(ventas);
+        int anioActual = LocalDate.now().getYear(); 
+        List<VentasPorMesDTO> ventas = ordenRepository.findVentasPorMes(anioActual);  // Busca ventas del año en BD
+        return ResponseEntity.ok(ventas);  
     }
-
+    /**
+     * Obtiene la cantidad de órdenes agrupadas por estado
+     */
     @GetMapping("/reportes/estado-ordenes")
     public ResponseEntity<Map<String, Long>> obtenerEstadoOrdenes() {
-        List<Object[]> resultados = ordenRepository.countByEstado();
-        Map<String, Long> estadoMap = new HashMap<>();
-        
+        List<Object[]> resultados = ordenRepository.countByEstado();  // Ejecuta query que cuenta órdenes por estado
+        Map<String, Long> estadoMap = new HashMap<>();  // Crea mapa para almacenar resultados
         for (Object[] resultado : resultados) {
-            String estado = (String) resultado[0];
-            Long cantidad = (Long) resultado[1];
-            estadoMap.put(estado, cantidad);
+            String estado = (String) resultado[0];  
+            Long cantidad = (Long) resultado[1];  
+            estadoMap.put(estado, cantidad); 
         }
-        
-        return ResponseEntity.ok(estadoMap);
+        return ResponseEntity.ok(estadoMap); 
     }
-
+    /**
+     * Obtiene los 5 libros más vendidos
+     */
     @GetMapping("/reportes/top-libros")
     public ResponseEntity<List<TopLibroDTO>> obtenerTopLibros() {
-        List<TopLibroDTO> topLibros = ordenRepository.findTopLibros();
-        // Limitar a top 5
-        List<TopLibroDTO> top5 = topLibros.stream()
-            .limit(5)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(top5);
+        List<TopLibroDTO> topLibros = ordenRepository.findTopLibros(); 
+        // Limitar a top 5 usando Java Streams
+        List<TopLibroDTO> top5 = topLibros.stream()  
+            .limit(5)  // Toma solo los primeros 5 elementos (los más vendidos)
+            .collect(Collectors.toList());  
+        return ResponseEntity.ok(top5);  // Devuelve HTTP 200 con los top 5 libros
     }
 
+    /**
+     * Obtiene las 5 categorías más populares según ventas
+     */
     @GetMapping("/reportes/categorias-populares")
     public ResponseEntity<List<CategoriaPopularDTO>> obtenerCategoriasPopulares() {
-        List<CategoriaPopularDTO> categorias = ordenRepository.findCategoriasPopulares();
-        // Limitar a top 5
-        List<CategoriaPopularDTO> top5 = categorias.stream()
-            .limit(5)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(top5);
+        List<CategoriaPopularDTO> categorias = ordenRepository.findCategoriasPopulares();  // Obtiene todas las categorías con sus ventas
+     
+        List<CategoriaPopularDTO> top5 = categorias.stream()  
+            .limit(5)  
+            .collect(Collectors.toList());  
+        return ResponseEntity.ok(top5);  
     }
 
     // ========================================

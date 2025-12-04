@@ -36,6 +36,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/ordenes/**").authenticated()
                 // Endpoints de favoritos - requieren autenticación
                 .requestMatchers("/api/favoritos/**").authenticated()
+                // Endpoints para empleados - gestión de órdenes
+                .requestMatchers("/api/empleado/**").hasAnyAuthority("ADMIN", "EMPLEADO")
                 // Endpoints de administración
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 // Cualquier otra petición requiere autenticación
