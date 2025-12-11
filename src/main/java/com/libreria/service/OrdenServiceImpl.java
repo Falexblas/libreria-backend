@@ -90,7 +90,7 @@ public class OrdenServiceImpl implements OrdenService {
 
     @Override
     @Transactional
-    public Orden crearOrdenDesdeCheckout(Usuario usuario, List<Map<String, Object>> itemsData, String metodoPago, String direccionEnvio, String ciudadEnvio, String codigoPostalEnvio, String telefonoContacto, String notas) {
+    public Orden crearOrdenDesdeCheckout(Usuario usuario, List<Map<String, Object>> itemsData, String metodoPago, String direccionEnvio, String ciudadEnvio, String codigoPostalEnvio, String telefonoContacto, String notas, BigDecimal tarifaEnvio) {
         
         if (itemsData == null || itemsData.isEmpty()) {
             throw new RuntimeException("El carrito está vacío");
@@ -109,7 +109,7 @@ public class OrdenServiceImpl implements OrdenService {
         orden.setNotas(notas);
         orden.setFechaActualizacion(LocalDateTime.now());
 
-        // Calcular total
+        // Calcular total de productos
         BigDecimal total = BigDecimal.ZERO;
         for (Map<String, Object> itemData : itemsData) {
             Number cantidadNum = (Number) itemData.get("cantidad");
@@ -119,6 +119,10 @@ public class OrdenServiceImpl implements OrdenService {
             int cantidad = cantidadNum.intValue();
             
             total = total.add(precio.multiply(new BigDecimal(cantidad)));
+        }
+        // Agregar tarifa de envío si viene informada
+        if (tarifaEnvio != null) {
+            total = total.add(tarifaEnvio);
         }
         orden.setTotal(total);
 

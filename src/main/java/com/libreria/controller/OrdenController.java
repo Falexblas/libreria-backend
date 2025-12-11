@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -74,6 +75,10 @@ public class OrdenController {
             String provincia = (String) payload.get("provincia");
             String distrito = (String) payload.get("distrito");
             String referencia = (String) payload.get("referencia");
+
+            // Tarifa de envío (opcional, pero necesaria para que el total incluya el envío)
+            Number tarifaEnvioNum = (Number) payload.get("tarifaEnvio");
+            BigDecimal tarifaEnvio = tarifaEnvioNum != null ? new BigDecimal(tarifaEnvioNum.toString()) : BigDecimal.ZERO;
             
             // Construir dirección completa
             StringBuilder direccionCompleta = new StringBuilder();
@@ -92,7 +97,8 @@ public class OrdenController {
                 ciudadEnvio != null ? ciudadEnvio : distrito,
                 codigoPostalEnvio,
                 telefonoContacto,
-                notas
+                notas,
+                tarifaEnvio
             );
             
             return ResponseEntity.ok(Map.of(

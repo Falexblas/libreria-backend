@@ -4,13 +4,14 @@ import com.libreria.dto.FacturaDTO;
 import com.libreria.model.Orden;
 import com.libreria.model.Usuario;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface OrdenService {
     Orden crearOrden(Usuario usuario, String metodoPago, String direccionEnvio, String ciudadEnvio, String codigoPostalEnvio, String telefonoContacto, String notas);
-    Orden crearOrdenDesdeCheckout(Usuario usuario, List<Map<String, Object>> items, String metodoPago, String direccionEnvio, String ciudadEnvio, String codigoPostalEnvio, String telefonoContacto, String notas);
+    Orden crearOrdenDesdeCheckout(Usuario usuario, List<Map<String, Object>> items, String metodoPago, String direccionEnvio, String ciudadEnvio, String codigoPostalEnvio, String telefonoContacto, String notas, BigDecimal tarifaEnvio);
     Optional<Orden> obtenerOrdenPorId(Long id);
     List<Orden> obtenerOrdenesPorUsuario(Usuario usuario);
     Object obtenerDetallesOrden(Long id, Usuario usuario);
