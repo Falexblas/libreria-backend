@@ -16,9 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final JWTAuthenticationfilter jwtAuthenticationFilter;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -27,7 +25,8 @@ public class SecurityConfig {
                 // Endpoints publicos de la API
                 .requestMatchers("/api/libros/**", "/api/auth/**", "/api/categories/**",
                                 "/api/autores/**", "/api/editoriales/**", "/api/test/**",
-                                "/api/chat/**", "/auth/**").permitAll()
+                                "/api/chat/**", "/auth/**",
+                                "/api/ubigeo/**", "/api/envio/**").permitAll() // ← AQUÍ AGREGADOS
                 // Endpoints de usuarios - requieren autenticación
                 .requestMatchers("/api/usuarios/**").authenticated()
                 // Endpoints del carrito - requieren autenticación
@@ -48,8 +47,7 @@ public class SecurityConfig {
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .httpBasic(httpBasic -> httpBasic.disable())
-            .formLogin(form -> form.disable());
-        
+            .formLogin(form -> form.disable()); 
         return http.build();
     }
 }
