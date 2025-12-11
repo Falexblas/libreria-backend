@@ -6,10 +6,18 @@ import com.libreria.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrdenServiceImpl implements OrdenService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrdenServiceImpl.class);
 
     @Autowired
     private OrdenRepository ordenRepository;
@@ -195,14 +205,42 @@ public class OrdenServiceImpl implements OrdenService {
 
     @Override
     @Transactional
-    public Orden actualizarEstadoOrden(Long id, String nuevoEstado) {
+    public Orden actualizarEstadoOrden(Long id, String nuevoEstado, String detalles, MultipartFile fotoPaquete) {
         Orden orden = ordenRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
         
         orden.setEstado(nuevoEstado);
+        if (detalles != null) {
+            orden.setNotas(detalles);
+        }
+        if (fotoPaquete != null && !fotoPaquete.isEmpty()) {
+            String savedUrl = guardarFotoPaquete(fotoPaquete);
+            orden.setFotoPaqueteUrl(savedUrl);
+        }
         orden.setFechaActualizacion(LocalDateTime.now());
         
         return ordenRepository.save(orden);
+    }
+
+    private String guardarFotoPaquete(MultipartFile file) {
+        String originalName = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "");
+        String extension = "";
+        int dot = originalName.lastIndexOf('.');
+        if (dot >= 0) {
+            extension = originalName.substring(dot);
+        }
+        String filename = java.util.UUID.randomUUID() + extension;
+        Path uploadDir = Paths.get("uploads", "tickets").toAbsolutePath().normalize();
+        Path target = uploadDir.resolve(filename).normalize();
+        try {
+            Files.createDirectories(uploadDir);
+            // Copiamos usando stream para evitar issues de transferTo en algunos entornos
+            Files.copy(file.getInputStream(), target);
+            return "http://localhost:8080/uploads/tickets/" + filename;
+        } catch (IOException e) {
+            log.error("Error guardando foto de paquete en {}: {}", target, e.getMessage(), e);
+            throw new RuntimeException("No se pudo guardar la foto del paquete", e);
+        }
     }
 
     @Override

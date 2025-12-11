@@ -43,6 +43,9 @@ public class Orden {
 
     private String notas;
 
+    @Column(name = "foto_paquete_url", columnDefinition = "TEXT")
+    private String fotoPaqueteUrl;
+
     @Column(name = "fecha_actualizacion", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fechaActualizacion;
 }

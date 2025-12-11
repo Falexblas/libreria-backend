@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface OrdenService {
     Orden crearOrden(Usuario usuario, String metodoPago, String direccionEnvio, String ciudadEnvio, String codigoPostalEnvio, String telefonoContacto, String notas);
@@ -18,7 +19,7 @@ public interface OrdenService {
     
     // Métodos para administración
     List<Orden> obtenerTodasLasOrdenes();
-    Orden actualizarEstadoOrden(Long id, String nuevoEstado);
+    Orden actualizarEstadoOrden(Long id, String nuevoEstado, String detalles, MultipartFile fotoPaquete);
     Object obtenerDetallesOrdenAdmin(Long id);  // Sin validación de usuario
     
     // Método para generar datos de factura

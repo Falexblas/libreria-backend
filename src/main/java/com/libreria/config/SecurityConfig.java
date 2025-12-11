@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/libros/**", "/api/auth/**", "/api/categories/**",
                                 "/api/autores/**", "/api/editoriales/**", "/api/test/**",
                                 "/api/chat/**", "/auth/**",
-                                "/api/ubigeo/**", "/api/envio/**").permitAll() // ← AQUÍ AGREGADOS
+                                "/api/ubigeo/**", "/api/envio/**", "/uploads/**").permitAll() // ← AQUÍ AGREGADOS
                 // Endpoints de usuarios - requieren autenticación
                 .requestMatchers("/api/usuarios/**").authenticated()
                 // Endpoints del carrito - requieren autenticación

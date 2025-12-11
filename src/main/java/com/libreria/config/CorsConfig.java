@@ -36,8 +36,7 @@ public class CorsConfig {
             "Accept",
             "Origin",
             "Access-Control-Request-Method",
-            "Access-Control-Request-Headers",
-            "X-Orden-Ticket"
+            "Access-Control-Request-Headers"
         ));
         
         // Headers expuestos

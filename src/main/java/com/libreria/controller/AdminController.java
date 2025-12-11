@@ -147,7 +147,7 @@ public class AdminController {
         String nuevoEstado = payload.get("estado");
         return ordenService.obtenerOrdenPorId(id)
                 .map(orden -> {
-                    Orden ordenActualizada = ordenService.actualizarEstadoOrden(id, nuevoEstado);
+                    Orden ordenActualizada = ordenService.actualizarEstadoOrden(id, nuevoEstado, null, null);
                     return ResponseEntity.ok(ordenActualizada);
                 })
                 .orElse(ResponseEntity.notFound().build());
