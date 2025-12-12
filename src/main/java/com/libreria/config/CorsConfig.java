@@ -14,46 +14,37 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Permitir orígenes específicos (ajusta según tu frontend Vue.js)
+
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:*",
             "http://127.0.0.1:*",
             "https://localhost:*",
-            "https://127.0.0.1:*"
+            "https://127.0.0.1:*",
+            "https://*.netlify.app",     // ➜ Permitir cualquier dominio de Netlify
+            "https://tudominio.netlify.app" // ➜ O tu dominio exacto
         ));
-        
-        // Métodos HTTP permitidos
+
         configuration.setAllowedMethods(Arrays.asList(
             "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
-        
-        // Headers permitidos
+
         configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "X-Requested-With",
-            "Accept",
-            "Origin",
-            "Access-Control-Request-Method",
+            "Authorization", "Content-Type", "X-Requested-With",
+            "Accept", "Origin", "Access-Control-Request-Method",
             "Access-Control-Request-Headers"
         ));
-        
-        // Headers expuestos
+
         configuration.setExposedHeaders(Arrays.asList(
             "Access-Control-Allow-Origin",
             "Access-Control-Allow-Credentials"
         ));
-        
-        // Permitir credenciales (cookies, headers de autorización)
+
         configuration.setAllowCredentials(true);
-        
-        // Tiempo de cache para preflight requests
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
-        
+
         return source;
     }
 }
