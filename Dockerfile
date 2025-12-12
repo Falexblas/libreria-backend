@@ -1,15 +1,20 @@
-FROM eclipse-temurin:17-jdk
+# ---------- BUILDER (compila con JDK 21) ----------
+FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
 COPY . .
 
-#  Dar permisos de ejecución al Maven Wrapper
 RUN chmod +x mvnw
-
-# Construir el proyecto
 RUN ./mvnw clean package -DskipTests
+
+# ---------- RUNTIME (más ligero) ----------
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "app.jar"]
